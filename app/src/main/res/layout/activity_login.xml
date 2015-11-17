@@ -52,6 +52,6 @@
         android:layout_width="78dp"
         android:layout_height="wrap_content"
         android:text="New Button"
-        android:id="@+id/button2"
+        android:id="@+id/btn_login_sina"
         android:layout_gravity="center_horizontal" />
 </LinearLayout>

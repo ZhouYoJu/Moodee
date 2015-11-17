@@ -3,6 +3,7 @@ package com.tscs.yoj.moodee;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -19,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,9 +30,21 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.umeng.socialize.bean.SHARE_MEDIA;
+import com.umeng.socialize.controller.UMServiceFactory;
+import com.umeng.socialize.controller.UMSocialService;
+import com.umeng.socialize.controller.listener.SocializeListeners;
+import com.umeng.socialize.exception.SocializeException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import Consts.LoginConsts;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -62,6 +76,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    UMSocialService mController = UMServiceFactory.getUMSocialService("com.umeng.login");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +108,84 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+
+        // sina sso 登录按钮
+
+
+        Button btn_sina=(Button)findViewById(R.id.btn_login_sina);
+        btn_sina.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                System.out.println("您点击了btn_sina");
+                mController.doOauthVerify(LoginActivity.this, SHARE_MEDIA.SINA, new SocializeListeners.UMAuthListener() {
+                    @Override
+                    public void onError(SocializeException e, SHARE_MEDIA platform) {
+                    }
+
+                    @Override
+                    public void onComplete(Bundle value, SHARE_MEDIA platform) {
+                        if (value != null && !TextUtils.isEmpty(value.getString("uid"))) {
+                            Toast.makeText(LoginActivity.this, "授权成功.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "授权失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancel(SHARE_MEDIA platform) {
+                    }
+
+                    @Override
+                    public void onStart(SHARE_MEDIA platform) {
+                    }
+                });
+
+                mController.getPlatformInfo(LoginActivity.this, SHARE_MEDIA.SINA, new SocializeListeners.UMDataListener() {
+                    @Override
+                    public void onStart() {
+                        Toast.makeText(LoginActivity.this, "获取平台数据开始...", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onComplete(int status, Map<String, Object> info) {
+
+                        Intent intent = new Intent(LoginActivity.this,ModActivityMainActivity.class);
+                        Bundle bundle = new Bundle();
+//                        String[] info_ParamName = new String[20];// 得到的微博用户信息的参数 。比如 uid=15771
+                        // favourites_count=2
+                        // location=北京 海淀区
+                        if (status == 200 && info != null) {
+                            StringBuilder sb = new StringBuilder();
+                            Set<String> keys = info.keySet();
+                            for (String key : keys) {
+                                sb.append(key + "=" + info.get(key).toString() + "\r\n");
+                                bundle.putString(key, info.get(key).toString());
+//                                info_ParamName.(key);
+                            }
+                            // 把参数数组 和对应的参数值map 传到主展示页面
+//                            bundle.putStringArray(LoginConsts.S_Info_ParamName,info_ParamName);
+                            intent.putExtras(bundle);
+
+                            startActivity(intent);
+
+                            Log.d("TestData", sb.toString());
+
+
+
+                        } else {
+                            Log.d("TestData", "发生错误：" + status);
+                        }
+                    }
+                });
+            }
+        });
+
+
+
+
     }
 
     private void populateAutoComplete() {

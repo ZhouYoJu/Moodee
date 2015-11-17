@@ -13,4 +13,10 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+<!-- 自定义-->
+    <string name="btn_login_sina"></string>
+    <string name="title_activity_mod_activity_main">Moodee</string>
+    <string name="action_settings">Settings</string>
+
+
 </resources>
